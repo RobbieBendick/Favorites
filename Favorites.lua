@@ -309,15 +309,14 @@ function GetNumInFavorites(favoriteGroupName)
 	return count;
 end
 
-local function IsBNetFriendOnline(accountName)
-	local numBNetTotal, numBNetOnline = BNGetNumFriends();
+local function IsBNetFriendOnline(battleTagToCheck)
+    local numBNetTotal, numBNetOnline = BNGetNumFriends();
     for i = 1, numBNetTotal do
         local accountInfo = C_BattleNet.GetFriendAccountInfo(i);
         if accountInfo then
-            local fullName = FriendsFrame_GetBNetAccountNameAndStatus(accountInfo);
-            if fullName == accountName then
-                return accountInfo.gameAccountInfo.isOnline;
-            end
+            if accountInfo.battleTag == battleTagToCheck then
+				return accountInfo.gameAccountInfo.isOnline;
+			end
         end
     end
     return false;
@@ -325,11 +324,10 @@ end
 
 function GetNumOnlineInFavorites(favoriteGroupName)
     if not favoriteGroupName then return 0 end
-    
     local count = 0;
     if Favorites.db.profile.favTypes[favoriteGroupName] then
-        for friendName, _ in pairs(Favorites.db.profile.favTypes[favoriteGroupName]) do
-            if IsBNetFriendOnline(friendName) then
+        for btag, _ in pairs(Favorites.db.profile.favTypes[favoriteGroupName]) do
+            if IsBNetFriendOnline(btag) then
                 count = count + 1;
             end
         end
@@ -617,7 +615,7 @@ local function fix(button)
 			local numTotal = GetNumInFavorites(button.favName);
 			
 			local textToShow = button.favName;
-			if numOnline > 0 or numTotal > 0 then
+			if numOnline > 0 and numTotal > 0 then
 				textToShow = textToShow .. " (" .. numOnline .. "/" .. numTotal .. ")";
 			end
 			
