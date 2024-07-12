@@ -19,7 +19,7 @@ function Favorites:SetupOptions()
 		plugins = {},
 		args = {
 			author = {
-			  name = "|cff1fd700Author:|r Jax",
+			  name = "|cff1fd700Author:|r " .. GetAddOnMetadata("Favorites", "Author"),
 			  type = "description"
 			},
 			version = {
@@ -84,13 +84,25 @@ function Favorites:SetupOptions()
 					order = 4,
 					width = 1.5,
 					name = "Seperate Wow Classic and Retail",
-					desc = "Splits Wow classic friends into a seperate group",
+					desc = "Splits Wow cata classic friends into a seperate group",
 					type = "toggle",
 					set = function(info,val) self.db.profile.splitClassic = val
 											 FriendsList_Update(true)
 						  end,
 					get = function(info) return self.db.profile.splitClassic end
 				  },
+				  swap = {
+					order = 4,
+					width = 1.5,
+					name = "Swap Class And Zone",
+					desc = "Shows class first and then what zone they're in.",
+					type = "toggle",
+					set = function(info,val) self.db.profile.swapClassAndZone = val
+											 FriendsList_Update(true)
+						  end,
+					get = function(info) return self.db.profile.swapClassAndZone end
+				  },
+				  
 				  sc2 = {
 					order = 5,
 					name = "",
