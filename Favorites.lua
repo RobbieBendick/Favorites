@@ -376,7 +376,7 @@ end
 
 local function GetOnlineInfoText(client, isMobile, rafLinkType, locationText)
 	if not locationText or locationText == "" then
-		return UNKNOWN;
+		return "Mobile";
 	end
 	if isMobile then
 		return LOCATION_MOBILE_APP;
