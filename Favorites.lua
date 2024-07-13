@@ -348,6 +348,32 @@ local function ShowRichPresenceOnly(client, wowProjectID, faction, realmID)
 	end;
 end
 
+local function SetGameIcon(button, clientProgram)
+    if clientProgram == "WoW" then
+        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-WoWicon")
+    elseif clientProgram == "WoWClassic" then
+        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-WoWClassicicon")
+    elseif clientProgram == "D3" then
+        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-D3icon")
+    elseif clientProgram == "S2" then
+        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-SC2icon")
+    elseif clientProgram == "WTCG" then
+        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-HSicon")
+    elseif clientProgram == "Hero" then
+        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-HotSicon")
+    elseif clientProgram == "Pro" then
+        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-Overwatchicon")
+    elseif clientProgram == "VIPR" then
+        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-CallOfDutyicon")
+    elseif clientProgram == "W3" then
+        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-Warcraft3Reforgedicon")
+    elseif clientProgram == "BSAp" then
+        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-Portrait")
+    else
+        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-Portrait")
+    end
+end
+
 local function GetOnlineInfoText(client, isMobile, rafLinkType, locationText)
 	if not locationText or locationText == "" then
 		return UNKNOWN;
@@ -420,7 +446,7 @@ local function fix(button)
 			button.status:SetTexture(FRIENDS_TEXTURE_OFFLINE);
 			nameText = info.name;
 			nameColor = FRIENDS_GRAY_COLOR;
-      infoText = FRIENDS_LIST_OFFLINE;
+      		infoText = FRIENDS_LIST_OFFLINE;
 		end
 		infoText = info.area;
 		button.gameIcon:Hide();
@@ -432,11 +458,13 @@ local function fix(button)
     		if accountInfo then
     			nameText = FriendsFrame_GetBNetAccountNameAndStatus(accountInfo);
           isFavoriteFriend = accountInfo.isFavorite;
-
     			button.status:SetTexture(statusTexture);
 
 				if accountInfo.gameAccountInfo.isOnline then
 				local class;
+
+				SetGameIcon(button, accountInfo.gameAccountInfo.clientProgram);
+
 				if (accountInfo.gameAccountInfo.className) then
 					extendedInfo = ""
 					if (Favorites.db.profile.showLevel and accountInfo.gameAccountInfo.characterLevel) then
@@ -522,7 +550,6 @@ local function fix(button)
     				else
     					infoText = GetOnlineInfoText(accountInfo.gameAccountInfo.clientProgram, accountInfo.gameAccountInfo.isWowMobile, accountInfo.rafLinkType, accountInfo.gameAccountInfo.areaName);
 					end
-    				-- button.gameIcon:SetTexture(BNet_GetClientTexture(accountInfo.gameAccountInfo.clientProgram));
 
     				local fadeIcon = (accountInfo.gameAccountInfo.clientProgram == BNET_CLIENT_WOW) and (accountInfo.gameAccountInfo.wowProjectID ~= WOW_PROJECT_ID);
     				if fadeIcon then
@@ -688,9 +715,9 @@ local function fix(button)
 			end
 		end
 	end
-	-- if ( GetMouseFocus() == button ) then
-	-- 	FriendsFrameTooltip_Show(button);
-	-- end
+	if ( GetMouseFocus() == button ) then
+		FriendsFrameTooltip_Show(button);
+	end
 	if button.searchBox then
 		button.searchBox.updating = false;
 	end

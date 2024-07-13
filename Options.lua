@@ -100,7 +100,8 @@ function Favorites:SetupOptions()
 					set = function(info,val) self.db.profile.swapClassAndZone = val
 											 FriendsList_Update(true)
 						  end,
-					get = function(info) return self.db.profile.swapClassAndZone end
+					get = function(info) return self.db.profile.swapClassAndZone end,
+					hidden = function() return not self.db.profile.showClass end,
 				  },
 				  
 				  sc2 = {
