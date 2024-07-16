@@ -110,7 +110,7 @@ function Favorites:SetupOptions()
 					type = "header"
 				  },
 				ccOP = {
-					order = 7,
+					order = 6,
 					width = "double",
 					name = "Color WoW Classic Friends",
 					desc = "Color of the names of Friends playing WoW Classic",
@@ -127,8 +127,25 @@ function Favorites:SetupOptions()
 						end,
 					get = function(info) return self.db.profile.classColorOtherProject end
 				},
-				favTypes={
+				spacerr = {
+					order = 7,
+					type = "description",
+					name = " ",
+					width = 0.07,
+				},
+				hideEmptyCategories = {
 					order = 8,
+					width = "normal",
+					name = "Hide Empty Categories",
+					desc = "Hides the headers of groups that are empty.",
+					type = "toggle",
+					set = function(info,val) self.db.profile.hideEmptyCategories = val
+											 FriendsList_Update(true)
+						end,
+					get = function(info) return self.db.profile.hideEmptyCategories end
+				},
+				favTypes={
+					order = 9,
 					name = "Current Favorite Groups",
 					type = "select",
 					values = Favorites.favTypes,
@@ -137,7 +154,7 @@ function Favorites:SetupOptions()
 					style = "radio"
 				},
 				delFav={
-					order = 9,
+					order = 10,
 					width = "normal",
 					name = "Remove Group",
 					type = "execute",
@@ -157,7 +174,7 @@ function Favorites:SetupOptions()
 					end,
 			    },
 					resetFav={
-						order = 10,
+						order = 11,
 						width = "nomral",
 						name = "Full Reset",
 						type = "execute",
@@ -185,11 +202,11 @@ function Favorites:SetupOptions()
 				spacer = {
 				   type = "description",
 				   name="", --use an empty value for name
-				   order = 11,
+				   order = 12,
 				   width="small", --forces a new line after the items above it
 				},
 				addFav={
-					order = 12,
+					order = 13,
 					name = "Add Custom Favorites Group",
 					type = "input",
 					get = function() return "" end,
@@ -204,7 +221,7 @@ function Favorites:SetupOptions()
 				notes = {
 				   type = "description",
 				   name="\n\nThe default favorites group cannot be deleted.", --use an empty value for name
-				   order =13,
+				   order =14,
 				   width="full", --forces a new line after the items above it
 				},
 

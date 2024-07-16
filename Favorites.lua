@@ -9,6 +9,7 @@ local defaults = {
 	swapClassAndZone = false,
 	hiddenFavNames = {},
  	classColorOtherProject = 1,
+	hideEmptyCategories = false,
 	favTypes = {
 		["Favorites"] = {	},
 	},
@@ -139,27 +140,40 @@ local function FriendsList_UpdateFIX(forceUpdate)
 
 
 
-	-- --favs
-  local favs = { };
+	-- favs
+	local favs = {}
 	for l, s in pairs(Favorites.db.profile.favTypes) do
-		AddButtonInfo(BNET_HEADER_TEXT, nil, l)
+		local categoryCount = 0
+
 		-- favorite Battlenet friends
-		for i = 1, numBNetOffline+numBNetOnline do
-			local id, _, battleTag , _, _, _, client = BNGetFriendInfo(i);
+		for i = 1, numBNetOffline + numBNetOnline do
+			local id, _, battleTag, _, _, _, client = BNGetFriendInfo(i)
 			if s[id] then
-				s[id] = nil;
+				s[id] = nil
 				s[battleTag] = true
 			end
 			if s[battleTag] then
-	favs[i] = battleTag;
-				if (not Favorites.db.profile.hiddenFavNames[l]) then
-					AddButtonInfo(FRIENDS_BUTTON_TYPE_BNET, i);
+				favs[i] = battleTag
+				categoryCount = categoryCount + 1
+			end
+		end
+
+		if categoryCount > 0 or not Favorites.db.profile.hideEmptyCategories then
+			AddButtonInfo(BNET_HEADER_TEXT, nil, l)
+			if not Favorites.db.profile.hiddenFavNames[l] then
+				for i = 1, numBNetOffline + numBNetOnline do
+					local id, _, battleTag, _, _, _, client = BNGetFriendInfo(i)
+					if s[battleTag] then
+						AddButtonInfo(FRIENDS_BUTTON_TYPE_BNET, i)
+					end
 				end
 			end
 		end
 	end
-	local classics = {};
 
+
+
+	local classics = {};
 	if (Favorites.db.profile.splitClassic) then
 		-- CLASSIC PLAYERS
 		AddButtonInfo(BNET_HEADER_TEXT, nil, "World of Warcraft Cata Classic")
@@ -188,11 +202,12 @@ local function FriendsList_UpdateFIX(forceUpdate)
 	end
 
 	-- online WoW friends
-	AddButtonInfo(BNET_HEADER_TEXT, nil, "Online Wow Friends")
-
-	for i = 1, numWoWOnline do
-		if (not Favorites.db.profile.hiddenFavNames["Online Wow Friends"]) then
-			AddButtonInfo(FRIENDS_BUTTON_TYPE_WOW, i);
+	if not Favorites.db.profile.hideEmptyCategories or numWoWOffline > 0 then
+		AddButtonInfo(BNET_HEADER_TEXT, nil, "Online Wow Friends")
+		for i = 1, numWoWOnline do
+			if (not Favorites.db.profile.hiddenFavNames["Online Wow Friends"]) then
+				AddButtonInfo(FRIENDS_BUTTON_TYPE_WOW, i);
+			end
 		end
 	end
 	-- divider between online and offline friends
@@ -208,11 +223,13 @@ local function FriendsList_UpdateFIX(forceUpdate)
 	end
 
 	-- offline WoW friends
-	AddButtonInfo(BNET_HEADER_TEXT, nil, "Offline Wow Friends")
-	for i = 1, numWoWOffline do
-		if (not Favorites.db.profile.hiddenFavNames["Offline Wow Friends"]) then
-			AddButtonInfo(FRIENDS_BUTTON_TYPE_WOW, i + numWoWOnline);
-		end
+	if not Favorites.db.profile.hideEmptyCategories or numWoWOffline > 0 then
+		AddButtonInfo(BNET_HEADER_TEXT, nil, "Offline Wow Friends")
+		for i = 1, numWoWOffline do
+			if (not Favorites.db.profile.hiddenFavNames["Offline Wow Friends"]) then
+				AddButtonInfo(FRIENDS_BUTTON_TYPE_WOW, i + numWoWOnline);
+			end
+		end	
 	end
 
 	FriendsFrameFriendsScrollFrame.totalFriendListEntriesHeight = totalButtonHeight;
