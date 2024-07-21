@@ -438,6 +438,7 @@ local function fix(button)
 	local nameText, nameColor, infoText, isFavoriteFriend, statusTexture;
 	local extendedInfo = "";
 	local hasTravelPassButton = false;
+
 	if ( button.buttonType == FRIENDS_BUTTON_TYPE_WOW ) then
 		local info = C_FriendList.GetFriendInfoByIndex(FriendListEntries[index].id);
 		if ( info.connected ) then
@@ -471,13 +472,40 @@ local function fix(button)
 		button.summonButton:SetPoint("TOPRIGHT", button, "TOPRIGHT", 1, -1);
 		FriendsFrame_SummonButton_Update(button.summonButton);
   elseif button.buttonType == FRIENDS_BUTTON_TYPE_BNET then
+
+	if not button.appearingOfflineIndicator then
+		button.appearingOfflineIndicator = button:CreateTexture(nil, "ARTWORK")
+	end
+	button.appearingOfflineIndicator:SetTexture("Interface\\ICONS\\ability_vanish");
+	button.appearingOfflineIndicator:ClearAllPoints();
+	button.appearingOfflineIndicator:SetPoint("BOTTOM", button.status, "BOTTOM", 0, -12);
+	button.appearingOfflineIndicator:SetSize(10,10)
+
+
+
+	button.status:ClearAllPoints();
+	button.status:SetPoint("LEFT", button.name, "LEFT", -17, 0);
     local accountInfo = C_BattleNet.GetFriendAccountInfo(FriendListEntries[index].id);
     		if accountInfo then
     			nameText = FriendsFrame_GetBNetAccountNameAndStatus(accountInfo);
           isFavoriteFriend = accountInfo.isFavorite;
-    			button.status:SetTexture(statusTexture);
 
-				if accountInfo.gameAccountInfo.isOnline then
+				
+			if not accountInfo.isAFK and not accountInfo.isDND and not accountInfo.gameAccountInfo.isAFK and not accountInfo.gameAccountInfo.isDND then
+				button.status:SetTexture(FRIENDS_TEXTURE_ONLINE);
+			elseif accountInfo.isAFK or accountInfo.gameAccountInfo.isAFK then
+				button.status:SetTexture(FRIENDS_TEXTURE_AFK);
+			elseif accountInfo.isDND or accountInfo.gameAccountInfo.isDND then
+				button.status:SetTexture(FRIENDS_TEXTURE_DND);
+			end
+
+			if accountInfo.appearOffline then
+				button.appearingOfflineIndicator:Show();
+			else
+				button.appearingOfflineIndicator:Hide();
+			end
+
+			if accountInfo.gameAccountInfo.isOnline then
 				local class;
 
 				SetGameIcon(button, accountInfo.gameAccountInfo.clientProgram);
@@ -488,7 +516,7 @@ local function fix(button)
 						extendedInfo = "[Level "..accountInfo.gameAccountInfo.characterLevel.."] "
 					end
 
-					local isRetail = accountInfo.gameAccountInfo.wowProjectID == WOW_PROJECT_ID
+					local sameProject = accountInfo.gameAccountInfo.wowProjectID == WOW_PROJECT_ID
 					class = string.gsub(string.upper(accountInfo.gameAccountInfo.className), "%s+", "")
 					-- search for localized class and convert to localization independent class
 					local ix=0
@@ -500,7 +528,7 @@ local function fix(button)
 						end
 					end
 
-					if (isRetail) then
+					if (sameProject) then
 						nameText = nameText:gsub("fffde05c", RAID_CLASS_COLORS[class].colorStr)
 						if (Favorites.db.profile.classColorOppositeFaction) then
 							nameText = nameText:gsub("ff7b8489", RAID_CLASS_COLORS[class].colorStr)
@@ -552,6 +580,8 @@ local function fix(button)
               end
             end
 
+
+
 			if not button.facIcon then 
 				button.facIcon = button:CreateTexture("facIcon"); 
 				button.facIcon:ClearAllPoints();
@@ -589,6 +619,7 @@ local function fix(button)
     					button.travelPassButton:Disable();
     				end
     			else
+					button.status:SetTexture(FRIENDS_TEXTURE_OFFLINE);
     				button.background:SetColorTexture(FRIENDS_OFFLINE_BACKGROUND_COLOR.r, FRIENDS_OFFLINE_BACKGROUND_COLOR.g, FRIENDS_OFFLINE_BACKGROUND_COLOR.b, FRIENDS_OFFLINE_BACKGROUND_COLOR.a);
     				button.gameIcon:Hide();
     				-- infoText = FriendsFrame_GetLastOnlineText(accountInfo);
