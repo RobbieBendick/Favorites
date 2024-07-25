@@ -83,32 +83,41 @@ local function FriendsList_UpdateFIX(forceUpdate)
 			local na = nil
 			local class = nil
 			local wowProjectID = nil
+			local note = nil
 			if ( buttonType == FRIENDS_BUTTON_TYPE_BNET ) then
 				_, _, na, _, ca, _, _, _ = BNGetFriendInfo(id);
-				local info = C_BattleNet.GetFriendAccountInfo(id)
+				local info = C_BattleNet.GetFriendAccountInfo(id);
 				class = info.gameAccountInfo.className;
+				note = info.note;
 			elseif ( buttonType == FRIENDS_BUTTON_TYPE_WOW ) then
 				local info = C_FriendList.GetFriendInfoByIndex(id);
 				na = info.name;
 				class = info.className;
+				note = info.notes;
 			end
-			
-
-
-			if (class and (RAID_CLASS_COLORS[string.upper(friendSearchValue)] ~= nil)) then
-				if (not string.find(string.lower(class), string.lower(friendSearchValue))) then
+		
+			if class and RAID_CLASS_COLORS[friendSearchValue:upper()] ~= nil then
+				if not class:lower():find(friendSearchValue:lower()) then
 					return
 				end
 			else
-				if (na and ca) and (not string.find(string.lower(na), string.lower(friendSearchValue)) and ca and not string.find(string.lower(ca), string.lower(friendSearchValue))) then
+				local searchValueLower = friendSearchValue:lower()
+				local naMatches = na and na:lower():find(searchValueLower)
+				local caMatches = ca and ca:lower():find(searchValueLower)
+				local noteMatches = note and note:lower():find(searchValueLower)
+			
+				if na and ca and not (naMatches or caMatches or noteMatches) then
 					return
-				elseif (na and not ca) and (not string.find(string.lower(na), string.lower(friendSearchValue))) then
+				elseif na and not ca and not (naMatches or noteMatches) then
 					return
-				elseif (not na and ca) and (not string.find(string.lower(ca), string.lower(friendSearchValue))) then
+				elseif not na and ca and not (caMatches or noteMatches) then
 					return
 				end
 			end
 		end
+
+
+
 		addButtonIndex = addButtonIndex + 1;
 		if ( not FriendListEntries[addButtonIndex] ) then
 			FriendListEntries[addButtonIndex] = { };
@@ -616,7 +625,7 @@ local function fix(button)
     				-- travel pass
     				hasTravelPassButton = true;
     				local restriction = FriendsFrame_GetInviteRestriction(button.id);
-            if restriction == INVITE_RESTRICTION_NONE then
+            	if restriction == INVITE_RESTRICTION_NONE then
     					button.travelPassButton:Enable();
     				else
     					button.travelPassButton:Disable();
