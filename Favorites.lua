@@ -116,8 +116,6 @@ local function FriendsList_UpdateFIX(forceUpdate)
 			end
 		end
 
-
-
 		addButtonIndex = addButtonIndex + 1;
 		if ( not FriendListEntries[addButtonIndex] ) then
 			FriendListEntries[addButtonIndex] = { };
@@ -377,32 +375,6 @@ local function ShowRichPresenceOnly(client, wowProjectID, faction, realmID)
 	end;
 end
 
-local function SetGameIcon(button, clientProgram)
-    if clientProgram == "WoW" then
-        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-WoWicon")
-    elseif clientProgram == "WoWClassic" then
-        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-WoWClassicicon")
-    elseif clientProgram == "D3" then
-        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-D3icon")
-    elseif clientProgram == "S2" then
-        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-SC2icon")
-    elseif clientProgram == "WTCG" then
-        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-HSicon")
-    elseif clientProgram == "Hero" then
-        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-HotSicon")
-    elseif clientProgram == "Pro" then
-        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-Overwatchicon")
-    elseif clientProgram == "VIPR" then
-        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-CallOfDutyicon")
-    elseif clientProgram == "W3" then
-        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-Warcraft3Reforgedicon")
-    elseif clientProgram == "BSAp" then
-        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-Portrait")
-    else
-        button.gameIcon:SetTexture("Interface\\FriendsFrame\\Battlenet-Portrait")
-    end
-end
-
 local function GetOnlineInfoText(client, isMobile, rafLinkType, locationText)
 	if not locationText or locationText == "" then
 		return "Mobile";
@@ -419,6 +391,14 @@ local function GetOnlineInfoText(client, isMobile, rafLinkType, locationText)
 	end
 
 	return locationText;
+end
+
+local function FriendsFrame_GetLastOnlineText(accountInfo)
+	if not accountInfo or (accountInfo.lastOnlineTime == 0) or HasTimePassed(accountInfo.lastOnlineTime, SECONDS_PER_YEAR) then
+		return FRIENDS_LIST_OFFLINE;
+	else
+		return string.format(BNET_LAST_ONLINE_TIME, FriendsFrame_GetLastOnline(accountInfo.lastOnlineTime));
+	end
 end
 
 local function fix(button)
@@ -498,9 +478,9 @@ local function fix(button)
 	button.status:ClearAllPoints();
 	button.status:SetPoint("LEFT", button.name, "LEFT", -17, 0);
     local accountInfo = C_BattleNet.GetFriendAccountInfo(FriendListEntries[index].id);
-    		if accountInfo then
-    			nameText = FriendsFrame_GetBNetAccountNameAndStatus(accountInfo);
-          isFavoriteFriend = accountInfo.isFavorite;
+		if accountInfo then
+			nameText = FriendsFrame_GetBNetAccountNameAndStatus(accountInfo);
+			isFavoriteFriend = accountInfo.isFavorite;
 
 				
 			if not accountInfo.isAFK and not accountInfo.isDND and not accountInfo.gameAccountInfo.isAFK and not accountInfo.gameAccountInfo.isDND then
@@ -517,129 +497,131 @@ local function fix(button)
 				button.appearingOfflineIndicator:Hide();
 			end
 
+			
 			if accountInfo.gameAccountInfo.isOnline then
-				local class;
+					local class;
 
-				SetGameIcon(button, accountInfo.gameAccountInfo.clientProgram);
+					C_Texture.SetTitleIconTexture(button.gameIcon, accountInfo.gameAccountInfo.clientProgram, 0); -- 0 = small, 1 = medium, 2 = large
 
-				if (accountInfo.gameAccountInfo.className) then
-					extendedInfo = ""
-					if (Favorites.db.profile.showLevel and accountInfo.gameAccountInfo.characterLevel) then
-						extendedInfo = "[Level "..accountInfo.gameAccountInfo.characterLevel.."] "
-					end
-
-					local sameProject = accountInfo.gameAccountInfo.wowProjectID == WOW_PROJECT_ID
-					class = string.gsub(string.upper(accountInfo.gameAccountInfo.className), "%s+", "")
-					-- search for localized class and convert to localization independent class
-					local ix=0
-					local cCount = GetNumClasses();
-					for ix=0, cCount, 1 do
-						local keyClass, ClassFilename = GetClassInfo(ix)
-						if (keyClass == accountInfo.gameAccountInfo.className) then
-							class = ClassFilename
+					if (accountInfo.gameAccountInfo.className) then
+						extendedInfo = ""
+						if (Favorites.db.profile.showLevel and accountInfo.gameAccountInfo.characterLevel) then
+							extendedInfo = "[Level "..accountInfo.gameAccountInfo.characterLevel.."] "
 						end
-					end
 
-					if (sameProject) then
-						nameText = nameText:gsub("fffde05c", RAID_CLASS_COLORS[class].colorStr)
-						if (Favorites.db.profile.classColorOppositeFaction) then
-							nameText = nameText:gsub("ff7b8489", RAID_CLASS_COLORS[class].colorStr)
+						local sameProject = accountInfo.gameAccountInfo.wowProjectID == WOW_PROJECT_ID
+						class = string.gsub(string.upper(accountInfo.gameAccountInfo.className), "%s+", "")
+						-- search for localized class and convert to localization independent class
+						local ix=0
+						local cCount = GetNumClasses();
+						for ix=0, cCount, 1 do
+							local keyClass, ClassFilename = GetClassInfo(ix)
+							if (keyClass == accountInfo.gameAccountInfo.className) then
+								class = ClassFilename
+							end
 						end
-						if (accountInfo.gameAccountInfo.factionName and currentFaction == accountInfo.gameAccountInfo.factionName) then
-							if (Favorites.db.profile.showClass and accountInfo.gameAccountInfo.className) then
-								extendedInfo = extendedInfo.."[|c"..RAID_CLASS_COLORS[class].colorStr..accountInfo.gameAccountInfo.className.."|r]"
+
+						if (sameProject) then
+							nameText = nameText:gsub("fffde05c", RAID_CLASS_COLORS[class].colorStr)
+							if (Favorites.db.profile.classColorOppositeFaction) then
+								nameText = nameText:gsub("ff7b8489", RAID_CLASS_COLORS[class].colorStr)
+							end
+							if (accountInfo.gameAccountInfo.factionName and currentFaction == accountInfo.gameAccountInfo.factionName) then
+								if (Favorites.db.profile.showClass and accountInfo.gameAccountInfo.className) then
+									extendedInfo = extendedInfo.."[|c"..RAID_CLASS_COLORS[class].colorStr..accountInfo.gameAccountInfo.className.."|r]"
+								end
+							else
+								if (Favorites.db.profile.showClass and accountInfo.gameAccountInfo.className) then
+									if (Favorites.db.profile.classColorOppositeFaction) then
+										extendedInfo = extendedInfo.."[|c"..RAID_CLASS_COLORS[class].colorStr..accountInfo.gameAccountInfo.className.."|r]"
+									else
+										extendedInfo = extendedInfo.."["..accountInfo.gameAccountInfo.className.."]"
+									end
+								end
 							end
 						else
-							if (Favorites.db.profile.showClass and accountInfo.gameAccountInfo.className) then
-								if (Favorites.db.profile.classColorOppositeFaction) then
+							if (Favorites.db.profile.classColorOtherProject == 2) then
+								nameText = nameText:gsub("fffde05c", "ff7b8489")
+								if (Favorites.db.profile.showClass and accountInfo.gameAccountInfo.className) then
+									extendedInfo = extendedInfo.."[|cff7b8489"..accountInfo.gameAccountInfo.className.."|r]"
+								end
+							elseif (Favorites.db.profile.classColorOtherProject == 3) then
+								nameText = nameText:gsub("fffde05c", RAID_CLASS_COLORS[class].colorStr)
+								nameText = nameText:gsub("ff7b8489", RAID_CLASS_COLORS[class].colorStr)
+								if (Favorites.db.profile.showClass and accountInfo.gameAccountInfo.className) then
 									extendedInfo = extendedInfo.."[|c"..RAID_CLASS_COLORS[class].colorStr..accountInfo.gameAccountInfo.className.."|r]"
-								else
-									extendedInfo = extendedInfo.."["..accountInfo.gameAccountInfo.className.."]"
+								end
+							elseif (Favorites.db.profile.classColorOtherProject == 4) then
+								nameText = nameText:gsub("fffde05c", RAID_CLASS_COLORS[class].colorStr)
+								if (Favorites.db.profile.showClass and accountInfo.gameAccountInfo.className) then
+									if (accountInfo.gameAccountInfo.factionName and currentFaction == accountInfo.gameAccountInfo.factionName) then
+										extendedInfo = extendedInfo.."[|c"..RAID_CLASS_COLORS[class].colorStr..accountInfo.gameAccountInfo.className.."|r]"
+									else
+										extendedInfo = extendedInfo.."["..accountInfo.gameAccountInfo.className.."]"
+									end
 								end
 							end
 						end
-					else
-						if (Favorites.db.profile.classColorOtherProject == 2) then
-							nameText = nameText:gsub("fffde05c", "ff7b8489")
-							if (Favorites.db.profile.showClass and accountInfo.gameAccountInfo.className) then
-								extendedInfo = extendedInfo.."[|cff7b8489"..accountInfo.gameAccountInfo.className.."|r]"
-							end
-						elseif (Favorites.db.profile.classColorOtherProject == 3) then
-							nameText = nameText:gsub("fffde05c", RAID_CLASS_COLORS[class].colorStr)
-							nameText = nameText:gsub("ff7b8489", RAID_CLASS_COLORS[class].colorStr)
-							if (Favorites.db.profile.showClass and accountInfo.gameAccountInfo.className) then
-								extendedInfo = extendedInfo.."[|c"..RAID_CLASS_COLORS[class].colorStr..accountInfo.gameAccountInfo.className.."|r]"
-							end
-						elseif (Favorites.db.profile.classColorOtherProject == 4) then
-							nameText = nameText:gsub("fffde05c", RAID_CLASS_COLORS[class].colorStr)
-							if (Favorites.db.profile.showClass and accountInfo.gameAccountInfo.className) then
-								if (accountInfo.gameAccountInfo.factionName and currentFaction == accountInfo.gameAccountInfo.factionName) then
-									extendedInfo = extendedInfo.."[|c"..RAID_CLASS_COLORS[class].colorStr..accountInfo.gameAccountInfo.className.."|r]"
-								else
-									extendedInfo = extendedInfo.."["..accountInfo.gameAccountInfo.className.."]"
-								end
-							end
-						end
+					end
+				button.background:SetColorTexture(FRIENDS_BNET_BACKGROUND_COLOR.r, FRIENDS_BNET_BACKGROUND_COLOR.g, FRIENDS_BNET_BACKGROUND_COLOR.b, FRIENDS_BNET_BACKGROUND_COLOR.a);
+
+				if Favorites.db.profile.colorBackground then
+					if accountInfo.gameAccountInfo.factionName == "Alliance" then
+					button.background:SetColorTexture(0.2, 0.2, 0.7, 0.2);
+					elseif accountInfo.gameAccountInfo.factionName == "Horde" then
+					button.background:SetColorTexture(0.7, 0.2, 0.2, 0.2);
 					end
 				end
-            button.background:SetColorTexture(FRIENDS_BNET_BACKGROUND_COLOR.r, FRIENDS_BNET_BACKGROUND_COLOR.g, FRIENDS_BNET_BACKGROUND_COLOR.b, FRIENDS_BNET_BACKGROUND_COLOR.a);
-
-            if Favorites.db.profile.colorBackground then
-              if accountInfo.gameAccountInfo.factionName == "Alliance" then
-                button.background:SetColorTexture(0.2, 0.2, 0.7, 0.2);
-              elseif accountInfo.gameAccountInfo.factionName == "Horde" then
-                button.background:SetColorTexture(0.7, 0.2, 0.2, 0.2);
-              end
-            end
 
 
 
-			if not button.facIcon then 
-				button.facIcon = button:CreateTexture("facIcon"); 
-				button.facIcon:ClearAllPoints();
-				button.facIcon:SetPoint("RIGHT", button.gameIcon, "LEFT", 7, -5);
-				button.facIcon:SetWidth(button.gameIcon:GetWidth())
-				button.facIcon:SetHeight(button.gameIcon:GetHeight())
+				if not button.facIcon then 
+					button.facIcon = button:CreateTexture("facIcon"); 
+					button.facIcon:ClearAllPoints();
+					button.facIcon:SetPoint("RIGHT", button.gameIcon, "LEFT", 7, -5);
+					button.facIcon:SetWidth(button.gameIcon:GetWidth())
+					button.facIcon:SetHeight(button.gameIcon:GetHeight())
+				end
+				button.facIcon:SetTexture(getEmbeddedFactionIcon(accountInfo.gameAccountInfo.factionName));
+				button.facIcon:Show()
+
+				if ShowRichPresenceOnly(accountInfo.gameAccountInfo.clientProgram, accountInfo.gameAccountInfo.wowProjectID, accountInfo.gameAccountInfo.factionName, accountInfo.gameAccountInfo.realmID) then
+					infoText = GetOnlineInfoText(accountInfo.gameAccountInfo.clientProgram, accountInfo.gameAccountInfo.isWowMobile, accountInfo.rafLinkType, accountInfo.gameAccountInfo.richPresence);
+				else
+					infoText = GetOnlineInfoText(accountInfo.gameAccountInfo.clientProgram, accountInfo.gameAccountInfo.isWowMobile, accountInfo.rafLinkType, accountInfo.gameAccountInfo.areaName);
+				end
+
+				local fadeIcon = (accountInfo.gameAccountInfo.clientProgram == BNET_CLIENT_WOW) and (accountInfo.gameAccountInfo.wowProjectID ~= WOW_PROJECT_ID);
+				if fadeIcon then
+					button.gameIcon:SetAlpha(0.2);
+				else
+					button.gameIcon:SetAlpha(1);
+				end
+
+				--Note - this logic should match the logic in FriendsFrame_ShouldShowSummonButton
+
+				local shouldShowSummonButton = FriendsFrame_ShouldShowSummonButton(button.summonButton);
+				button.gameIcon:SetShown(not shouldShowSummonButton);
+
+				-- travel pass
+				hasTravelPassButton = true;
+				local restriction = FriendsFrame_GetInviteRestriction(button.id);
+				if restriction == INVITE_RESTRICTION_NONE then
+					button.travelPassButton:Enable();
+				else
+					button.travelPassButton:Disable();
+				end
+			else
+				button.status:SetTexture(FRIENDS_TEXTURE_OFFLINE);
+				button.background:SetColorTexture(FRIENDS_OFFLINE_BACKGROUND_COLOR.r, FRIENDS_OFFLINE_BACKGROUND_COLOR.g, FRIENDS_OFFLINE_BACKGROUND_COLOR.b, FRIENDS_OFFLINE_BACKGROUND_COLOR.a);
+				button.gameIcon:Hide();
+				infoText = FriendsFrame_GetLastOnlineText(accountInfo);
+				
 			end
-            button.facIcon:SetTexture(getEmbeddedFactionIcon(accountInfo.gameAccountInfo.factionName));
-            button.facIcon:Show()
-
-    				if ShowRichPresenceOnly(accountInfo.gameAccountInfo.clientProgram, accountInfo.gameAccountInfo.wowProjectID, accountInfo.gameAccountInfo.factionName, accountInfo.gameAccountInfo.realmID) then
-    					infoText = GetOnlineInfoText(accountInfo.gameAccountInfo.clientProgram, accountInfo.gameAccountInfo.isWowMobile, accountInfo.rafLinkType, accountInfo.gameAccountInfo.richPresence);
-    				else
-    					infoText = GetOnlineInfoText(accountInfo.gameAccountInfo.clientProgram, accountInfo.gameAccountInfo.isWowMobile, accountInfo.rafLinkType, accountInfo.gameAccountInfo.areaName);
-					end
-
-    				local fadeIcon = (accountInfo.gameAccountInfo.clientProgram == BNET_CLIENT_WOW) and (accountInfo.gameAccountInfo.wowProjectID ~= WOW_PROJECT_ID);
-    				if fadeIcon then
-    					button.gameIcon:SetAlpha(0.2);
-    				else
-    					button.gameIcon:SetAlpha(1);
-    				end
-
-    				--Note - this logic should match the logic in FriendsFrame_ShouldShowSummonButton
-
-    				local shouldShowSummonButton = FriendsFrame_ShouldShowSummonButton(button.summonButton);
-    				button.gameIcon:SetShown(not shouldShowSummonButton);
-
-    				-- travel pass
-    				hasTravelPassButton = true;
-    				local restriction = FriendsFrame_GetInviteRestriction(button.id);
-            	if restriction == INVITE_RESTRICTION_NONE then
-    					button.travelPassButton:Enable();
-    				else
-    					button.travelPassButton:Disable();
-    				end
-    			else
-					button.status:SetTexture(FRIENDS_TEXTURE_OFFLINE);
-    				button.background:SetColorTexture(FRIENDS_OFFLINE_BACKGROUND_COLOR.r, FRIENDS_OFFLINE_BACKGROUND_COLOR.g, FRIENDS_OFFLINE_BACKGROUND_COLOR.b, FRIENDS_OFFLINE_BACKGROUND_COLOR.a);
-    				button.gameIcon:Hide();
-    				-- infoText = FriendsFrame_GetLastOnlineText(accountInfo);
-    			end
-    			button.summonButton:ClearAllPoints();
-    			button.summonButton:SetPoint("CENTER", button.gameIcon, "CENTER", 1, 0);
-    			FriendsFrame_SummonButton_Update(button.summonButton);
-    		end
+			button.summonButton:ClearAllPoints();
+			button.summonButton:SetPoint("CENTER", button.gameIcon, "CENTER", 1, 0);
+			FriendsFrame_SummonButton_Update(button.summonButton);
+		end
 	elseif ( button.buttonType == FRIENDS_BUTTON_TYPE_DIVIDER ) then
 		local scrollFrame = FriendsFrameFriendsScrollFrame;
 		local divider = scrollFrame.dividerPool:Acquire();
@@ -760,8 +742,24 @@ local function fix(button)
 		else
 			button.info:SetText("["..(infoText or "Offline").."] ".. extendedInfo);
 		end
-		button.info:SetWidth(200)
+
+
+		-- determine if infoText contains "last online" and format accordingly
+		local lastOnlineText
+		if infoText and infoText:find("last online") then
+			lastOnlineText = infoText:gsub("%[([^%]]+)%]", "%1");
+		else
+			lastOnlineText = infoText or "Offline";
+			if (Favorites.db.profile.swapClassAndZone) then
+				lastOnlineText = extendedInfo .. " [" .. lastOnlineText .. "]";
+			else
+				lastOnlineText = "[" .. lastOnlineText .. "] " .. extendedInfo;
+			end
+		end
+		button.info:SetWidth(200);
+		button.info:SetText(lastOnlineText);
 		button:Show();
+
 	else
 		button:Hide();
 	end
@@ -771,7 +769,7 @@ local function fix(button)
 			FriendsTooltip:Show();
 		else
 			if button and button.OnEnter then
-				button:OnEnter();		
+				button:OnEnter();
 			end
 		end
 	end
