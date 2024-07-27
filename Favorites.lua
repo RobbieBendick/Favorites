@@ -611,12 +611,13 @@ local function fix(button)
 				else
 					button.travelPassButton:Disable();
 				end
+				nameColor = FRIENDS_BNET_NAME_COLOR;
 			else
 				button.status:SetTexture(FRIENDS_TEXTURE_OFFLINE);
 				button.background:SetColorTexture(FRIENDS_OFFLINE_BACKGROUND_COLOR.r, FRIENDS_OFFLINE_BACKGROUND_COLOR.g, FRIENDS_OFFLINE_BACKGROUND_COLOR.b, FRIENDS_OFFLINE_BACKGROUND_COLOR.a);
 				button.gameIcon:Hide();
 				infoText = FriendsFrame_GetLastOnlineText(accountInfo);
-				
+				nameColor = FRIENDS_GRAY_COLOR;
 			end
 			button.summonButton:ClearAllPoints();
 			button.summonButton:SetPoint("CENTER", button.gameIcon, "CENTER", 1, 0);
