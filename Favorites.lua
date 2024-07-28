@@ -764,6 +764,7 @@ local function fix(button)
 	else
 		button:Hide();
 	end
+	
 	-- update the tooltip if hovering over a button
 	if (FriendsTooltip.button == button) or (GetMouseFocus() == button) then
 		if (button.buttonType == BNET_HEADER_TEXT) then
@@ -775,7 +776,7 @@ local function fix(button)
 		end
 	end
 	if ( GetMouseFocus() == button ) then
-		FriendsFrameTooltip_Show(button);
+    	FriendsFrameTooltip_Show(button);
 	end
 	if button.searchBox then
 		button.searchBox.updating = false;
@@ -783,13 +784,13 @@ local function fix(button)
 	return height;
 end
 function BNGetBTAG(t)
-  local bTAG = nil
-  for i=1, BNGetNumFriends() do
+	local bTAG = nil
+	for i=1, BNGetNumFriends() do
 		local bnetIDAccount, _, battleTag, _, _, _, client, o = BNGetFriendInfo(i);
 		if t == bnetIDAccount then
-		bTAG = battleTag
+			bTAG = battleTag
 		end
-  end
+	end
   return bTAG
 end
 local function fixDropDown()
